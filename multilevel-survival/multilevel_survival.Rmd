@@ -1,0 +1,118 @@
+---
+title: "Multilevel Survival Models"
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
+bibliography: multilevel_survival.bib
+---
+
+```{r set-here, echo=FALSE, include=FALSE}
+here::i_am("multilevel-survival/multilevel_survival.Rmd")
+```
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  include = TRUE
+  )
+```
+
+```{r load-packages}
+library(survival)
+```
+
+# Notation and set-up
+
+The notation basically follows that used in
+[@Therneau2000]. For a subject $i$, $T_i^*$ will denote the random variable
+corresponding
+to the time to the event of interest, and $C_i^*$ will be the censoring time.
+The observed follow-up time is $T_i = \min(T_i^*, C_i^*)$, and the indicator
+for whether the event was observed for subject $i$ is
+$\delta_i = I(T_i^* \leq C_i^*)$, where $I(x) = 1$ if the condition
+$x$ is true, and $0$ otherwise. The event time $T_i^*$ is taken to
+have probability density function $f_i(t)$ and survival function
+$S_i(t) = \mathrm{Pr}(T_i^* > t)$. The corresponding hazard function
+is denoted
+\begin{equation}
+\lambda_i(t) = \lim_{\Delta t \downarrow 0}
+\frac{\mathrm{Pr}(t \leq T_i^* < t + \Delta t | T^*_i \geq t)}{\Delta t} =
+\frac{f_i(t)}{S_i(t)} ,
+\end{equation}
+and the cumulative hazard is
+\begin{equation}
+\Lambda_i(t) = \int_0^t \lambda_i(s) ds =-\log S_i(t).
+\end{equation}
+
+When the counting process formulation is used, $N_i(t)$ will
+denote the number of observed events in the closed interval $[0, t]$,
+and $Y_i(t)$ will be an indicator for whether subject $i$ is observed
+and at risk at time $t$. For right-censored survival data with a single event
+per subject,
+\begin{equation}
+\begin{aligned}
+N_i(t) &= I(\{ T_i \leq t , \delta_i = 1 \}) , \\
+Y_i(t) &= I(T_i \geq t) .
+\end{aligned}
+\end{equation}
+For $n$ subjects being observed, the size of the risk set and the total
+number of events are denoted $\overline{Y}(t) = \sum_{i=1}^n Y_i(t)$ and
+$\overline{N}(t) = \sum_{i=1}^n N_i(t)$.
+
+Any covariates measured for the $i^{\text{th}}$ subject will be collected
+into a vector $\mathbf{x}_i(t)$. In general, this may include both
+time-independent and time-dependent variables, although for simplicity
+often the explicit time-dependence is not shown.
+A proportional hazards model supposes that the hazard function
+can be modelled in terms of these covariates as
+\begin{equation} \label{eq:ph-model}
+\lambda_i(t | \mathbf{x}_i(t)) = \lambda_0(t)
+\exp[ \mathbf{x}^\prime_i(t) \beta ] ,
+\end{equation}
+where $\beta$ is a vector of regression coefficients and $\lambda_0(t)$
+is a baseline hazard. The baseline hazard may have a parametric model
+specified for it, or it may be left unspecified as in the Cox
+model [@Cox1972].
+
+If the form of the baseline hazard were known, and assuming
+independent and non-informative
+censoring, the likelihood function
+for the observed times for $n$ subjects could be evaluated as
+\begin{equation}
+L(\lambda_0(t), \beta) = \prod_{i=1}^n f_i(t|\mathbf{x}_i)^{\delta_i} S_i(t |\mathbf{x}_i)^{1 - \delta_i} =
+\prod_{i=1}^n [\lambda_i(t|\mathbf{x}_i) S_i(t|\mathbf{x}_i) ]^{\delta_i}
+S_i(t|\mathbf{x}_i)^{1 - \delta_i} =
+\prod_{i=1}^n \lambda_i(t|\mathbf{x}_i)^{\delta_i} S_i(t|\mathbf{x}_i) ,
+\end{equation}
+resulting in the log-likelihood
+\begin{equation}
+\ell(\lambda_0(t), \beta) = \sum_{i=1}^n \left \{ \delta_i [ \log \lambda_0(t) + \mathbf{x}^\prime_i(t) \beta ] -
+\int_0^t \lambda_0(s) \exp [ \mathbf{x}_i^\prime(s) \beta ] ds \right \}.
+\end{equation}
+In the special case where all covariates are time-independent,
+\begin{equation}
+\ell(\lambda_0(t), \beta) = \sum_{i=1}^n \left \{ \delta_i [ \log \lambda_0(t) + \mathbf{x}^\prime_i \beta ] -
+\Lambda_0(t) \exp [ \mathbf{x}_i^\prime \beta ] \right \}.
+\end{equation}
+When $\lambda_0(t)$ is left completely unspecified, we rewrite the
+likelihood as
+\begin{equation}
+\begin{aligned}
+\ell(\lambda_0(t), \beta) &= \sum_{i=1}^n \left \{ \delta_i \left [ 
+\mathbf{x}^\prime_i \beta - \log \sum_{j \in R_i} \exp[
+\mathbf{x}^\prime_j \beta ] \right ] \right \} \\
+\quad & {} + \sum_{i=1}^n \left \{ \delta_i \left [
+\log \lambda_0(t) + \log \sum_{j \in R_i} \exp[
+\mathbf{x}^\prime_j \beta ] \right ] -
+\Lambda_0(t) \exp [ \mathbf{x}_i^\prime \beta ] \right \},
+\end{aligned}
+\end{equation}
+where $R_i$ is the risk set at time $t_i$.
+
+# Multivariate Frailty Model
+
+The notation in this section follows [@Ripatti2000].
+
+```{r session-info}
+sessionInfo()
+```

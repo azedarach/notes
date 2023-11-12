@@ -1,0 +1,144 @@
+---
+title: "Time-varying Coefficients in Cox Models"
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
+bibliography: cox_time_varying_coef.bib
+---
+
+```{r set-here, echo=FALSE, include=FALSE}
+here::i_am("cox-time-varying-coef/cox_time_varying_coef.Rmd")
+```
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  include = TRUE
+  )
+```
+
+
+```{r load-packages}
+library(survival)
+```
+
+# Cox model
+
+As usual, the Cox proportional hazards model supposes that
+the hazard for the $i^{\text{th}}$ subject ($i = 1, \dots, n$),
+conditional on $p$ measured covariates $\mathbf{x}_i(t)$,
+can be modelled as
+\begin{equation}
+\lambda(t | \mathbf{x}_i^\prime(t)) = 
+\lambda_0(t) \exp [ \mathbf{x}_i^\prime(t) \beta(t) ] ,
+\end{equation}
+where $\lambda_0(t)$ is the unspecified baseline hazard. In
+principle both $\mathbf{x}_i(t)$ and $\beta(t)$ may be
+time-varying. Here we are interested in the case that
+$\mathbf{x}_i(t) = \mathbf{x}_i$ is time-independent, but the
+one or more regression coefficients $\beta(t)$ are time-dependent.
+
+Fitting the model is based
+on maximising the (log-)partial likelihood, which in the
+absence of ties is given by
+\begin{equation}
+L(\beta) = \prod_{t_{(i)}} \frac{\exp[\mathbf{x}_i^\prime
+\beta]}{\sum_{j \in R_i} \exp[\mathbf{x}_j^\prime
+\beta]} =
+\prod_{t_{(i)}} \frac{r_i(t_{(i)})}{\sum_{j \in R_i} r_j(t_{(i)})}
+\end{equation}
+where $t_{(1)} < t_{(2)} < \dots < t_{(m)}$ are the distinct
+event times, $r_i(t) = \exp[\mathbf{x}_i(t) \beta(t)]$ is the
+risk score, and $R_i$ is the risk set at time $t_{(i)}$. The
+corresponding log partial likelihood is
+\begin{equation}
+\ell(\beta) = \sum_{t_{(i)}} \log r_i(t_{(i)}) - \log \left [
+\sum_{j \in R_i} r_j(t_{(i)}) \right ] =
+\sum_{t_{(i)}} \left \{ \mathbf{x}_i^\prime \beta - \log \left [
+\sum_{j \in R_i} \exp (\mathbf{x}_j^\prime \beta ) \right ]
+\right \}
+\end{equation}
+
+In counting process notation, where $Y_i(t)$ is an indicator for
+whether subject $i$ is observed and at risk at time $t$
+(e.g., $Y_i(t) = I(T_i \geq t)$), and
+$N_i(t)$ denotes the number of observed events for subject $i$
+in the closed interval $[0, t]$ (e.g., $N_i(t) = 
+I(\{ T_i \leq t , \delta_i = 1 \})$), the log partial likelihood
+can be written (again in the absence of ties) as
+\begin{equation}
+\ell(\beta) = \sum_{i=1}^n \int_0^\infty \left [
+Y_i(t) \log r_i(t) - \log \left ( \sum_j Y_j(t) r_j(t) \right )\right ]
+d N_i(t) .
+\end{equation}
+When $N_i(t)$ is a pure jump process, so that
+$d N_i(t) \sim \Delta N_i(t) = N_i(t) - N_i(t_{-})$ are discrete
+increments, this reduces to the previous expression.
+
+The standard approach to fitting is based on solving
+\begin{equation}
+U(\beta) = 0
+\end{equation}
+where the score vector
+\begin{equation}
+U(\beta) = \sum_{i=1}^n \int_0^\infty \left [ 
+\mathbf{x}_i(t) - \bar{\mathbf{x}}(\beta, t) \right ] dN_i(t) ,
+\end{equation}
+where $\bar{\mathbf{x}}(\beta, t)$ is the weighted mean
+\begin{equation}
+\bar{\mathbf{x}}(\beta, t) = 
+\frac{\sum_i Y_i(t) r_i(t) \mathbf{x}_i(t)}{\sum_i Y_i(t) r_i(t)} .
+\end{equation}
+In the traditional notation,
+\begin{equation}
+U(\beta) = \sum_{i} \left [ 
+\mathbf{x}_i(t_{(i)}) - \bar{\mathbf{x}}(\beta, t_{(i)}) \right ] 
+\end{equation}
+
+The Newton-Raphson algorithm is used to numerically solve for
+the maximum partial likelihood estimate $\hat{\beta}$.
+Starting from an initial guess $\hat{\beta}^{(0)}$, the solution
+is approximated by the successive iterates 
+\begin{equation}
+\hat{\beta}^{(i+1)} = \hat{\beta}^{(i)} +
+\mathcal{I}^{-1}(\hat{\beta}^{(i)}) U(\hat{\beta}^{(i)}) ,
+\end{equation}
+where the information matrix is given by
+\begin{equation}
+\mathcal{I}(\beta) = \sum_{i=1}^n \int_0^\infty V(\beta, t) dN_i(t),
+\end{equation}
+and
+\begin{equation}
+V(\beta, t) = \frac{\sum_i Y_i(t) r_i(s) \left [ 
+\mathbf{x}_i(t) - \bar{\mathbf{x}}(\beta, t) \right ]^\prime
+\left [ 
+\mathbf{x}_i(t) - \bar{\mathbf{x}}(\beta, t) \right ]}
+{\sum_i Y_i(t) r_i(t)} .
+\end{equation}
+The algorithm iterates until convergence in the log partial
+likelihood is reached to a given tolerance.
+
+# Fitting using counting process format
+
+# Directly incorporating known time-dependence
+
+When the form of the time-dependence is known, an alternative
+to the usual approach is to modify the score equations
+to incorporate the time-varying effects directly [@Perperoglou2006].
+If the time-varying coefficients can be written in terms of
+a set of $q$ basis functions $f_k(t)$, e.g.,
+\begin{equation}
+\beta_j(t) = \sum_{k} \theta_{jk} f_k(t) ,
+\end{equation}
+then the linear predictor for subject $i$ may be written
+\begin{equation}
+\mathbf{x}_i^\prime \beta(t) = \mathbf{x}_i^\prime \Theta
+\mathbf{f}(t) .
+\end{equation}
+The unknown regression coefficients are collected in the
+matrix $\Theta$, with elements $\Theta_{ij} = \theta_{ij}$.
+The score vector for $\mathrm{vec}(\Theta)$ is
+
+```{r session-info}
+sessionInfo()
+```

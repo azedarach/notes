@@ -1,0 +1,56 @@
+---
+title: "Differential Expression Analysis"
+output:
+  bookdown::html_document2: default
+bibliography: differential_expression.bib
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  include = TRUE
+  )
+```
+
+# Linear Models
+
+Approach underlying, e.g., limma [@Ritchie2015]. Formulated
+initially in the context of analysis of microarray data,
+e.g. [@Smyth2004]. For the $g^{\text{th}}$ gene, let
+$y_{g1}, \dots, y_{gn}$ be the measured response values. For
+microarray data, for example, $y_{gi}$ is usually either
+the log-ratio $\log_2 R_{gi} - \log_2 G_{gi}$ (for two-colour
+arrays) or log-intensity (for one colour arrays) measured
+for gene $g$ in array $i$.
+
+After normalising to remove unwanted technical variation, the
+response is assumed to be described by the linear model
+\begin{equation}
+\mathrm{E}[\mathbf{y}_g] = X \mathbf{\alpha}_g ,
+\end{equation}
+where $\mathbf{y}_g^\prime = (y_{g1},\dots,y_{gn})$, $X$ is 
+a suitable design matrix, and $\mathbf{\alpha}_g$ is the
+coefficient vector. The variance is allowed to vary across
+genes, such that
+\begin{equation}
+\mathrm{Var}[\mathbf{y}_g] = W_g \sigma_g^2 ,
+\end{equation}
+where $W_g$ is a (known) non-negative matrix of weights.
+
+Biological contrasts of interest are encoded as
+\begin{equation}
+\mathbf{\beta}_g = C^\prime \mathbf{\alpha}_g ,
+\end{equation}
+for suitable $C$. The general problem in a differential
+expression analysis is to assess whether particular contrasts
+within this set are zero.
+
+
+```{r}
+#| label: session-info
+sessionInfo()
+```

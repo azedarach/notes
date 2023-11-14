@@ -3,5 +3,8 @@
 
 .Rproj.user/
 
+*.css
+*.js
 *.html
+*.woff
 *.pdf

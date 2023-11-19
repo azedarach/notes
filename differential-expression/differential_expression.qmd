@@ -49,6 +49,64 @@ for suitable $C$. The general problem in a differential
 expression analysis is to assess whether particular contrasts
 within this set are zero.
 
+Estimates $\hat{\mathbf{\alpha}}_g$ and $s_g^2$ of the unknown parameters
+$\mathbf{\alpha}_g$ and $\sigma_g^2$ are assumed to be available,
+with estimated covariance matrices
+\begin{equation}
+\mathrm{Var}[\hat{\mathbf{\alpha}}_g] = V_g s_g^2 .
+\end{equation}
+In the case that $V_g$ depends on $\mathbf{\alpha}_g$, then it is
+assumed that $V_g$ is evaluated at the estimate $\hat{\mathbf{\alpha}}_g$,
+with this dependence ignorable to first-order. Estimators for the
+contrasts of interest are
+\begin{equation}
+\hat{\mathbf{\beta}}_g = C^\prime \hat{\mathbf{\alpha}}_g ,
+\end{equation}
+with
+\begin{equation}
+\mathrm{Var}[\hat{\mathbf{\beta}}_g] = C^\prime V_g C s_g^2 .
+\end{equation}
+To develop the hierarchical model proposed in [@Smyth2004], it
+is assumed that the contrasts $\hat{\mathbf{\beta}}_g$ are
+normally distributed with mean $\mathbf{\beta}_g$ and
+covariance matrix $C^\prime V_g C \sigma_g^2$, and $s_g^2$
+is approximately distributed according to a scaled
+$\chi^2$ distribution,
+\begin{equation}
+\begin{aligned}
+s_g^2 | \sigma_g^2 &\sim \frac{\sigma_g^2}{d_g} \chi_{d_g}^2 , \\
+\hat{\beta}_{gj} | \beta_{gj}, \sigma_g^2 &\sim
+N(\beta_{gj}, v_{gj} \sigma_g^2) ,
+\end{aligned}
+\end{equation}
+where $v_{gj}$ is the $j^{\text{th}}$ diagonal element of
+$C^\prime V_g C$ and $d_g$ is the residual d.f. for the linear
+model for gene $g$. This implies that 
+$\hat{\beta}_{gj} / \sigma_{g} \sqrt{v_{gj}} |
+\beta_{gj},\sigma_g^2 \sim N(\beta_{gj}, 1)$,
+$s_g^2 d_g / \sigma_g^2 | \sigma_g^2 \sim \chi_{d_g}^2$,
+and the test statistic
+\begin{equation}
+t_{gj} = \frac{\hat{\beta}_{gj}}{s_g \sqrt{v_{gj}}} =
+\frac{\frac{\hat{\beta}_{gj}}{\sigma_g \sqrt{v_{gj}}}}
+{\sqrt{\frac{s_g^2 d_g}{d_g \sigma_g^2}}}
+\end{equation}
+is approximately $t_{d_g}$-distributed under the null
+$\beta_{gj} = 0$. Estimators for distinct genes $g_1$ and $g_2$
+are assumed independent. For $\sigma_g^2$, a prior of the form
+\begin{equation}
+\frac{1}{\sigma_g^2} \sim \frac{1}{d_0 s_0^2} \chi_{d_0}^2
+\end{equation}
+is assumed. For $\beta_{gj}$, the prior is taken to be a mixture
+of a point mass at zero, with mixing probability
+$1 - \mathrm{Pr}(\beta_{gj} \neq 0) \equiv 1 - p_j$, and
+the conjugate normal prior
+\begin{equation}
+\beta_{gj} | \sigma_g^2, \beta_{gj} \neq 0 \sim
+N(0, v_{0j} \sigma_g^2) .
+\end{equation}
+
+
 
 ```{r}
 #| label: session-info

@@ -16,7 +16,11 @@ knitr::opts_chunk$set(
   )
 ```
 
-# Linear Models
+# Context
+
+# Methods
+
+## Linear Models
 
 Approach underlying, e.g., limma [@Ritchie2015]. Formulated
 initially in the context of analysis of microarray data,
@@ -105,8 +109,64 @@ the conjugate normal prior
 \beta_{gj} | \sigma_g^2, \beta_{gj} \neq 0 \sim
 N(0, v_{0j} \sigma_g^2) .
 \end{equation}
+The likelihood, conditional on $\mathbf{\beta}_g$ and
+$\sigma_g^2$, for a given $\beta_{gj}$ and $s_g^2$ is
+\begin{equation}
+p(\hat{\beta}_{gj}, s_g^2 | \mathbf{\beta}, \sigma_g^2) =
+p(\hat{\beta}_{gj} | \beta_{gj} \sigma_g^2)
+p(s_g^2 | \sigma_g^2) ,
+\end{equation}
+where the relevant densities are
+\begin{equation}
+\begin{aligned}
+p(s_g^2 | \sigma_g^2) &=
+\frac{d_g \sigma_g^{-2}}{2^{\frac{d_g}{2}} \Gamma(d_g/2)}
+(s_g^2 d_g \sigma_g^{-2})^{\frac{d_g}{2}-1} \exp \left [
+  -\frac{s_g^2 d_g \sigma_g^{-2}}{2} \right ] , \\
+  p(\hat{\beta}_{gj} | \beta_{gj}, \sigma_g^2) &=
+  \frac{1}{\sqrt{2 \pi v_{gj} \sigma_g^2}} \exp \left [
+   -\frac{(\hat{\beta}_{gj} - \beta_{gj})^2}{2 v_{gj} \sigma_g^2}
+    \right ] .
+\end{aligned}
+\end{equation}
+The joint distribution for $\hat{\beta}_{gj}$ and $s_g^2$
+conditional on $\beta_{gj}$ can then be calculated,
+\begin{align*}
+p(\hat{\beta}_{gj}, s_g^2 | \beta_{gj}) &=
+\int p(\hat{\beta}_{gj}, s_g^2, 
+\sigma_g^{-2} | \beta_{gj}) d\sigma_g^{-2} \\
+&= \int p(\hat{\beta}_{gj}, s_g^2 | \beta_{gj}, \sigma_g^{-2})
+p(\sigma_g^{-2}) d\sigma_g^{-2} \\
+&= \int p(\hat{\beta}_{gj} | \beta_{gj} \sigma_g^2)
+p(s_g^2 | \sigma_g^2)
+p(\sigma_g^{-2}) d\sigma_g^{-2} .
+\end{align*}
+Plugging in the above densities, along with the prior
+\begin{equation}
+p(\sigma_g^{-2}) = \frac{d_0 s_0^2}{2^{d_0/2} \Gamma(d_0/2)}
+(d_0 s_0^2 \sigma_g^{-2})^{\frac{d_0}{2}-1}
+\exp \left [ -\frac{d_0 s_0^2 \sigma_g^{-2}}{2} \right ] ,
+\end{equation}
+gives under the null $\beta_{gj} = 0$
 
-
+The above choice of priors implies that, conditional on
+$s_g^2$,
+\begin{equation}
+p(\sigma_g^{-2}|s_g^2) \propto
+(\sigma_g^{-2})^{\frac{d_g + d_0}{2} - 1}
+\exp \left [ -\frac{\sigma_g^{-2}}{2} (s_g^2 d_g + s_0^2 d_0
+\right ] ,
+\end{equation}
+and hence
+\begin{equation}
+\tilde{s}_g^{-2} \equiv E[\sigma_g^{-2} | s_g^2] =
+\frac{d_0 + d_g}{d_0 s_0^2 + d_g s_g^2} .
+\end{equation}
+Define the moderated $t$-statistic by
+\begin{equation}
+\tilde{t}_{gj} = \frac{\hat{\beta}_{gj}}
+{\tilde{s}_g \sqrt{v_{gj}}}.
+\end{equation}
 
 ```{r}
 #| label: session-info

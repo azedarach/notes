@@ -1,7 +1,8 @@
 ---
 title: "Differential Expression Analysis"
-output:
-  bookdown::html_document2: default
+format:
+  html:
+    toc: true
 bibliography: differential_expression.bib
 ---
 

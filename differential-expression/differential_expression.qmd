@@ -51,7 +51,7 @@ Biological contrasts of interest are encoded as
 \end{equation}
 for suitable $C$. The general problem in a differential
 expression analysis is to assess whether particular contrasts
-within this set are zero.
+within this set are zero (i.e. not differentially expressed).
 
 Estimates $\hat{\mathbf{\alpha}}_g$ and $s_g^2$ of the unknown parameters
 $\mathbf{\alpha}_g$ and $\sigma_g^2$ are assumed to be available,
@@ -147,14 +147,38 @@ p(\sigma_g^{-2}) = \frac{d_0 s_0^2}{2^{d_0/2} \Gamma(d_0/2)}
 (d_0 s_0^2 \sigma_g^{-2})^{\frac{d_0}{2}-1}
 \exp \left [ -\frac{d_0 s_0^2 \sigma_g^{-2}}{2} \right ] ,
 \end{equation}
-gives under the null $\beta_{gj} = 0$
+gives under the null $\beta_{gj} = 0$,
+\begin{align}
+p(\hat{\beta}_{gj}, s_g^2 | \beta_{gj} = 0) &=
+\frac{1}{\sqrt{2 v_{gj}}} \left ( \frac{d_0 s_0^2}{2} \right )^{d_0/2}
+\left ( \frac{d_g}{2} \right )^{d_g/2}
+\frac{s_g^{2 ( d_g/2-1)}}{B(1/2, d_0/2, d_g/2)} \nonumber \\
+& \quad {} \times \left ( \frac{\hat{\beta}_{gj}^2 / v_{gj} +
+d_0 s_0^2 + d_g s_g^2}{2} \right )^{-(d_g + d_0 + 1)/2} ,
+\end{align}
+with
+\begin{equation}
+B(x_1, x_2, x_3) \equiv \frac{\Gamma(x_1) \Gamma(x_2) \Gamma(x_3)}
+{\Gamma(x_1 + x_2 + x_3)} .
+\end{equation}
+Similarly, for $\beta_{gj} \neq 0$, after additionally marginalising
+over the prior for $\beta_{gj}$,
+\begin{align}
+p(\hat{\beta}_{gj}, s_g^2 | \beta_{gj} \neq 0) &=
+\frac{1}{\sqrt{2 (v_{0j} + v_{gj})}} \left (
+  \frac{d_0 s_0^2}{2} \right )^{d_0/2}
+\left ( \frac{d_g}{2} \right )^{d_g/2}
+\frac{s_g^{2 ( d_g/2-1)}}{B(1/2, d_0/2, d_g/2)} \nonumber \\
+& \quad {} \times \left ( \frac{\hat{\beta}_{gj}^2 / (v_{0j}+v_{gj}) +
+d_0 s_0^2 + d_g s_g^2}{2} \right )^{-(d_g + d_0 + 1)/2} .
+\end{align}
 
 The above choice of priors implies that, conditional on
 $s_g^2$,
 \begin{equation}
 p(\sigma_g^{-2}|s_g^2) \propto
 (\sigma_g^{-2})^{\frac{d_g + d_0}{2} - 1}
-\exp \left [ -\frac{\sigma_g^{-2}}{2} (s_g^2 d_g + s_0^2 d_0
+\exp \left [ -\frac{\sigma_g^{-2}}{2} (s_g^2 d_g + s_0^2 d_0)
 \right ] ,
 \end{equation}
 and hence
@@ -167,7 +191,65 @@ Define the moderated $t$-statistic by
 \tilde{t}_{gj} = \frac{\hat{\beta}_{gj}}
 {\tilde{s}_g \sqrt{v_{gj}}}.
 \end{equation}
+Then since, under the change of variables $\hat{\beta}_{gj} \to
+\tilde{t}_{gj}$,
+\begin{equation}
+p(\tilde{t}_{gj}, s_g^2 | \beta_{gj}) = \tilde{s} \sqrt{v_{gj}}
+p(\hat{\beta}_{gj}, s_g^2 | \beta_{gj}),
+\end{equation}
+it follows that
+\begin{align}
+p(\tilde{t}_{gj}, s_g^2 | \beta_{gj} = 0) &=
+\frac{(d_0 s_0^2)^{d_0/2} d_g^{d_g/2} s_g^{2(d_g/2-1)}}
+{B(d_0/2, d_g/2) (d_0 s_0^2 + d_g s_g^2)^{\frac{d_0+d_g}{2}}} \nonumber \\
+& \quad {} \times \frac{(d_0 + d_g)^{-1/2}}{B(1/2, d_0/2+d_g/2)}
+\left ( 1 + \frac{\tilde{t}_{gj}^2}{d_0 + d_g}
+ \right )^{-\frac{1}{2} (d_0 + d_g + 1)} ,
+\end{align}
+and
+\begin{align}
+p(\tilde{t}_{gj}, s_g^2 | \beta_{gj} \neq 0) &=
+\frac{(d_0 s_0^2)^{d_0/2} d_g^{d_g/2} s_g^{2(d_g/2-1)}}
+{B(d_0/2, d_g/2) (d_0 s_0^2 + d_g s_g^2)^{\frac{d_0+d_g}{2}}} \nonumber \\
+& \quad {} \times \frac{1}{\left ( 1 + \frac{v_{0j}}{v_{gj}}
+\right )^{1/2}}
+\frac{(d_0 + d_g)^{-1/2}}{B(1/2, d_0/2+d_g/2)}
+\left ( 1 + \frac{1}{d_0 + d_g} \left [ \frac{\tilde{t}_{gj}}{\left (
+  1 + \frac{v_{0j}}{v_{gj}} \right)^{1/2}}\right]^2
+ \right )^{-\frac{1}{2} (d_0 + d_g + 1)} .
+\end{align}
+Hence, $\tilde{t}_{gj}$ and $s_g^2$ are independent with
+$s_g^2 \sim s_0^2 F_{d_g,d_0}$ while
+\begin{equation}
+\begin{aligned}
+\tilde{t}_{gj} | \beta_{gj} = 0 &\sim t_{d_0 + d_g} , \\
+\tilde{t}_{gj} | \beta_{gj} \neq 0 &\sim \left ( 1 + \frac{v_{0j}}{v_{gj}}
+\right )^{1/2} t_{d_0 + d_g} ,
+\end{aligned}
+\end{equation}
+i.e., $\tilde{t}_{gj}$ is a mix of a scaled $t$-distribution and
+ordinary $t$-distribution, with mixing proportions $p_j$ and $1 - p_j$.
 
+The above expressions for the posterior distributions allow the
+posterior odds $O_{gj}$ that the gene $g$ is differentially expressed 
+in the $j^{\text{th}}$ contrast (i.e., the posterior odds that
+$\beta_{gj} \neq 0$) to be computed. Since
+\begin{equation}
+O_{gj} = \frac{p(\beta_{gj} \neq 0 | \tilde{t}_{gj}, s_g^2)}
+{p(\beta_{gj} = 0 | \tilde{t}_{gj}, s_g^2)} =
+\frac{p(\tilde{t}_{gj}, s_g^2 | \beta_{gj} \neq 0) p(\beta_{gj} \neq 0)}
+{p(\tilde{t}_{gj}, s_g^2 | \beta_{gj} = 0) p(\beta_{gj} = 0)} =
+\frac{p(\tilde{t}_{gj}| \beta_{gj} \neq 0) p_j}
+{p(\tilde{t}_{gj}| \beta_{gj} = 0) (1 - p_j)} ,
+\end{equation}
+substituting the above expressions for the posterior distribution of
+$\tilde{t}_{gj}$ gives
+\begin{equation}
+O_{gj} = \frac{p_j}{1-p_j} \left ( \frac{v_{gj}}{v_{gj} + v_{0j}}
+\right )^{1/2} \left ( \frac{\tilde{t}_{gj}^2 + d_0 + d_g}
+{\tilde{t}_{gj}^2 \frac{v_{gj}}{v_{gj} + v_{0j}} + d_0 + d_g}
+  \right )^{(d_0 + d_g + 1)/2} .
+\end{equation}
 ```{r}
 #| label: session-info
 sessionInfo()

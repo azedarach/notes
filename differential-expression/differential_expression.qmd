@@ -251,6 +251,99 @@ O_{gj} = \frac{p_j}{1-p_j} \left ( \frac{v_{gj}}{v_{gj} + v_{0j}}
 {\tilde{t}_{gj}^2 \frac{v_{gj}}{v_{gj} + v_{0j}} + d_0 + d_g}
   \right )^{(d_0 + d_g + 1)/2} .
 \end{equation}
+
+The linear modelling approach employed by limma
+estimates the hyperparameters using an empirical Bayes
+approach. Since each $s_g^2$ is distributed according to
+a scaled $F$-distribution,
+\begin{equation}
+z_g = \ln s_g^2
+\end{equation}
+is distributed as a constant plus Fisher's $z$-distribution.
+Moreover,
+\begin{equation}
+\begin{aligned}
+E[z_g] &= \ln s_0^2 + \psi(d_g / 2) - \psi(d_0 / 2) +
+\ln \frac{d_0}{d_g} , \\
+\mathrm{Var}[z_g] &= \psi^\prime(d_g/2) + \psi^\prime(d_0/2) ,
+\end{aligned}
+\end{equation}
+where $\psi(x)$ and $\psi^\prime(x)$ are the digamma and
+trigamma functions. Let
+\begin{equation}
+e_g = z_g - \psi(d_g/2) + \ln(d_g/2)
+\end{equation}
+and
+\begin{equation}
+\bar{e} = \frac{1}{G} \sum_{g=1}^G e_g ,
+\end{equation}
+where $G$ is the number of genes. Then
+\begin{equation}
+E\left [ \frac{(e_g - \bar{e})^2 G}{G - 1} -
+\psi^\prime(d_g/2)\right ]\approx \psi^\prime(d_0/2) .
+\end{equation}
+An estimate for $d_0$ is thus found by solving
+\begin{equation}
+\psi^\prime(d_0/2) = \frac{1}{G} \sum_{g=1}^G \left \{ 
+ \frac{(e_g - \bar{e})^2 G}{G - 1} -
+\psi^\prime(d_g/2) \right \} .
+\end{equation}
+The solution for $d_0$ can then be used to estimate
+\begin{equation}
+s_0^2 = \exp \left [ \bar{e} + \psi(d_0/2) - \ln(d_0/2)
+ \right ] .
+\end{equation}
+When a solution for $d_0$ does not exist, i.e., when the
+relevant sample mean is non-positive, there is no evidence
+that the $\sigma_g^2$ vary between genes. In this case,
+we set $d_0 \to \infty$ and $s_0^2 = \exp(\bar{e})$.
+
+Estimation of $v_{0j}$ proceeds from the cumulative distribution
+function for $\tilde{t}_{gj}$,
+\begin{equation}
+F(\tilde{t}_{gj}; v_{gj}, d_0 + d_g) = p_j F \left (
+ \tilde{t}_{gj} \left [ \frac{v_{gj}}{v_{gj}+v_{0j}}
+ \right ]^{1/2}; d_0 + d_g \right) +
+ (1 - p_j) F(\tilde{t}_{gj}; d_0 + d_g) .
+\end{equation}
+Here $F(t; k)$ is the $t$-distribution CDF on $k$ degrees of
+freedom. Let $r$ be the rank of gene $g$ when $|\tilde{t}_{gj}|$
+are sorted in descending order. To estimate $v_{0j}$, the
+computed $p$-value for each $|\tilde{t}_{gj}|$ is matched
+to its nominal value based on its rank, by solving
+\begin{equation}
+2 F(-|\tilde{t}_{gj}|; v_{gj} , v_{0j}, d_0 + d_g) =
+\frac{r - 0.5}{G} .
+\end{equation}
+The solution is
+\begin{equation}
+v_{0j} = v_{gj} \left (
+  \frac{\tilde{t}_{gj}^2}{q_{\textrm{target}}^2} - 1\right )
+\end{equation}
+where
+\begin{equation}
+q_{\textrm{target}} = F^{-1}(p_{\textrm{target}}; d_0 + d_g)
+\end{equation}
+and
+\begin{equation}
+p_{\textrm{target}} = \frac{1}{p_j} \left [
+ \frac{r - 0.5}{2G} - (1 - p_j) F(-|\tilde{t}_{gj}|;
+ d_0 + d_g ) \right ] ,
+\end{equation}
+provided that $p_{\textrm{target}} \in (0, 1)$ and
+$q_{\textrm{target}} \leq |\tilde{t}_{gj}|$. When
+$|tilde{t}_{gj}|$ lies above the line of equality on a
+$t$-distribution probability plot, then $p_{\textrm{target}} > 0$
+and $v_{0j} > 0$. Additionally, $p_{\textrm{target}} < 1$ for
+those genes for which $(r - 0.5) / (2G) < p_j$. When
+$|\tilde{t}_{gj}|$ lies below the line of equality, the
+best estimate for $v_{0j} = 0$. Hence, to estimate $v_{0j}$,
+for each of the genes with rank $r = 1, \dots, G p_j/2$,
+the individual estimate for $v_{0j}$ is calculated and the
+estimate for $v_{0j}$ is set to the mean of these estimates.
+If all such $|\tilde{t}_{gj}|$ lie below the line of equality,
+then $v_{0j}$ is estimated as zero.
+
 ```{r}
 #| label: session-info
 sessionInfo()

@@ -83,6 +83,7 @@ kable(exmpl_data, digits = 2) %>%
                      "Population B" = 3, " " = 1))
 ```
 
+These notes will mostly follow [@Breslow1987].
 For a given cohort or population, let $d_j$ be the
 observed number of events in the $j^{\text{th}}$ stratum
 ($j = 1, \dots, J$) and let $n_j$ be the number of persons
@@ -113,8 +114,10 @@ over the space of 1 year or 10 years. The rate at which
 events occur in these two situations
 is likely to be quite different: in the former case, we would
 expect the average time to experiencing the event to be
-much shorter. 
-
+much shorter. The incidence rate, which accounts for the total
+time each person in the population is observed to be at risk,
+is obtained by taking the denominator to be the total
+person-time at risk.
 Let $\tau_j$ be the total observed person-time in the
 $j^{\text{th}}$ stratum.
 Then the incidence rate for the stratum is estimated as
@@ -122,13 +125,45 @@ Then the incidence rate for the stratum is estimated as
 \hat{\lambda}_j = \frac{d_j}{\tau_j} .
 \end{equation}
 
+When stratum membership is time-invariant, calculation of
+$\tau_j$ is fairly straightforward, by simply summing the
+total time at risk for all individuals in the stratum.
+Some care is needed, however, in determining the time at
+risk for each individual. In particular, only follow-up intervals
+during which the individual is under observation and at risk
+of experiencing the event should be counted.
+Periods where the individual could not possibly have
+experienced the event (i.e., was not at risk) should not be
+counted. The typical example occurs when entry into a cohort
+is conditional on the individual reaching a particular
+milestone (years of exposure, years on treatment, etc.)
+without experiencing the event of interest. In this case,
+the time prior to reaching the milestone should not
+contribute to the person-time denominator. Time after a
+person ceases to be at risk should also not be counted.
+For example, if the event of interest is defined as the
+first occurrence of some potentially recurrent outcome,
+then each person in the population would only contribute
+time at risk up until first experiencing the event.
+For individuals who are lost to follow-up and
+who hence cannot have their event status ascertained,
+contributions to time at risk should cease
+at the last time their status is known.
+
+The calculation is more involved if stratum membership is
+time-varying, for example when strata are defined by age
+and calendar period. In this case it is necessary to
+break up the follow-up period into intervals where the
+person is in each stratum, and allocate the corresponding
+amount of person-time to the denominator for the relevant
+stratum.
 
 
 ## Direct standardisation
 
 
 
-[@Breslow1987]
+
 
 ## Session details
 

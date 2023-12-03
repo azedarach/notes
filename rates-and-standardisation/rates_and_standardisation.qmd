@@ -20,6 +20,7 @@ knitr::opts_chunk$set(
 library(Epi)
 library(knitr)
 library(kableExtra)
+library(ggplot2)
 ```
 
 Standardisation allows sets of stratum-specific measures,
@@ -83,7 +84,7 @@ kable(exmpl_data, digits = 2) %>%
                      "Population B" = 3, " " = 1))
 ```
 
-These notes will mostly follow [@Breslow1987].
+These notes will mostly follow @Breslow1987.
 For a given cohort or population, let $d_j$ be the
 observed number of events in the $j^{\text{th}}$ stratum
 ($j = 1, \dots, J$) and let $n_j$ be the number of persons
@@ -152,12 +153,161 @@ at the last time their status is known.
 
 The calculation is more involved if stratum membership is
 time-varying, for example when strata are defined by age
-and calendar period. In this case it is necessary to
-break up the follow-up period into intervals where the
+and calendar period, or when needed for the purposes of
+standardisation. In this case it is necessary to
+break up the follow-up period into the intervals where the
 person is in each stratum, and allocate the corresponding
 amount of person-time to the denominator for the relevant
-stratum.
+stratum. Consider the example given in @Hill1972 of a
+person who is born on 16 July 1928, enters a study on
+5 January 1952, and exits on 30 June 1962. The person's
+contribution to the person-years denominator in each
+5-year age group 0-4, 5-9, etc. is calculated as follows:
+```{r}
+#| label: hill-pyears-exmpl
+# Example calculation of person-years as in Hill 1972
+date_birth <- as.Date("1928-07-16")
+date_entry <- as.Date("1952-01-05")
+date_exit <- as.Date("1962-05-30")
 
+# For convenience, convert dates to fractional years
+# (assuming every year is 365.25 days long)
+year_birth <- as.numeric(date_birth) / 365.25 + 1970
+year_entry <- as.numeric(date_entry) / 365.25 + 1970
+year_exit <- as.numeric(date_exit) / 365.25 + 1970
+
+# Calculate age at entry and exit
+age_entry <- year_entry - year_birth
+age_exit <- year_exit - year_birth
+
+# Define five-year age groups
+age_breaks <- seq(5, 85, by = 5)
+
+# For each interval, determine the time of entry into
+# the interval on the age time-scale, which is either
+# the person's age at entry or the left end of the interval
+# (whichever is the larger)
+entry_time <- pmax(age_entry, c(-Inf, age_breaks))
+
+# Similarly, work out the time of exit from the interval
+# on the age time-scale - either the person's age at exit
+# or the right end of the interval (whichever is the smallest)
+exit_time <- pmin(age_exit, c(age_breaks, Inf))
+
+# Calculate the duration spent in each interval,
+# setting person-time to zero for intervals where the
+# person does not contribute any time
+pers_years <- exit_time - entry_time
+mask <- exit_time < entry_time
+pers_years[mask] <- 0
+
+# For neater printing
+pers_years_summ <- data.frame(
+    age_start = c(0, age_breaks),
+    age_end = c(age_breaks, Inf),
+    person_years = pers_years
+)
+
+pers_years_summ[pers_years_summ$person_years > 0,]
+```
+
+Note that, because the exact dates of birth, entry and
+exit are available, an exact calculation of the person-years
+contributed to each age group is possible. When the exact dates
+are not known, it is necessary to approximate the person-time
+spent in each interval. @Breslow1987 give the example scheme
+of taking 0.5 person-years for the year of entry and exit, and
+1 full person-year for each intervening year, or including
+a single 0.25 person-year contribution if the year of entry
+and exit coincide.
+
+When stratum membership varies across multiple time
+dimensions (e.g., current age and calendar year, or current
+age and time on treatment), the above calculation needs to
+be extended to compute the amount of time spent at risk
+by each person within each hypercube defined by the
+breaks used to discretise each time scale. Sticking with
+the example in @Hill1972, one must calculate the person-years
+at risk by 5-year age group and calendar period. In
+@fig-hill-exmpl-graph, this corresponds to the length of the
+line within each grid cell.
+```{r}
+#| echo: false
+#| label: fig-hill-exmpl-graph
+#| fig-cap: Example of distributing person-years at risk across age and calendar period intervals
+hill_exmpl <- data.frame(
+    age = c(age_entry, age_exit),
+    period = c(date_entry, date_exit)
+)
+
+p <- ggplot(hill_exmpl, aes(x = period, y = age)) +
+    geom_line() +
+    scale_y_continuous(breaks = seq(20, 40, by = 5),
+                       limits = c(20, 40),
+                       minor_breaks = NULL) +
+    scale_x_date(breaks = c(as.Date("1951-01-01"),
+                            as.Date("1956-01-01"),
+                            as.Date("1961-01-01"),
+                            as.Date("1966-01-01")),
+                 limits = c(as.Date("1951-01-01"),
+                            as.Date("1966-01-01")),
+                 minor_breaks = NULL) +
+    labs(
+        x = "Date",
+        y = "Age"
+    ) +
+    theme_bw()
+
+p
+```
+
+In R, the necessary calculations can be done using (for example)
+the Epi package:
+```{r}
+#| label: hill-exmpl-epi
+# Define the date of birth, date of entry into the study,
+# and date of exit for our example person
+hill_exmpl <- data.frame(
+    date_birth = cal.yr(as.Date("1928-07-16")),
+    date_entry = cal.yr(as.Date("1952-01-05")),
+    date_exit = cal.yr(as.Date("1962-05-30")),
+    status = factor(c(FALSE), labels = c("Censored"))
+)
+
+# Create a Lexis object, specifying each of the relevant
+# time scales (per = calendar time, age = age, tfE = time
+# from entry into the study)
+hill_lexis <- Lexis(
+    entry = list(
+        per = date_entry,
+        age = date_entry - date_birth,
+        tfE = 0
+    ),
+    exit = list(per = date_exit),
+    exit.status = status,
+    data = hill_exmpl
+)
+
+# Split the follow-up time for the example person by
+# 5-year age and calendar interval, either in two steps ...
+hill_split1 <- splitLexis(
+    hill_lexis, "age", breaks = seq(0, 100, by = 5))
+hill_split1 <- splitLexis(
+    hill_split1, "per", breaks = seq(1951, 1966, by = 5)
+)
+
+print(hill_split1)
+
+# ... or one
+hill_split2 <- popEpi::splitMulti(
+    hill_lexis,
+    age = seq(0, 100, by = 5),
+    per = seq(1951, 1966, by = 5),
+    drop = FALSE
+)
+
+print(hill_split2)
+```
 
 ## Direct standardisation
 
